@@ -39,10 +39,27 @@ func main() {
 		}
 
 		var response []Data
+		var wg sync.WaitGroup
 		responseCh := make(chan Data, limit)
+		poolSize := 5
+		semaphore := make(chan struct{}, poolSize)
 		for i := 0; i < limit; i++ {
-			go makeApiCall(endpoint+strconv.Itoa(i), responseCh)
-			response = append(response, <-responseCh)
+			wg.Add(1)
+			go func(i int) {
+				defer wg.Done()
+				semaphore <- struct{}{}
+				defer func() { <-semaphore }()
+				makeApiCall(endpoint+strconv.Itoa(i), responseCh)
+			}(i)
+		}
+
+		go func() {
+			wg.Wait()
+			close(responseCh)
+		}()
+
+		for data := range responseCh {
+			response = append(response, data)
 		}
 		fmt.Println(len(response))
 		c.JSON(200, response)
