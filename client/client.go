@@ -3,15 +3,20 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"strconv"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type Data struct {
@@ -24,6 +29,7 @@ var mu sync.Mutex
 func main() {
 	endpoint := "http://localhost:8080/api/v1/get_something?id="
 	totalRequests := 30
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.GET("/", func(c *gin.Context) {
 		s := c.DefaultQuery("limit", "30")
@@ -139,7 +145,37 @@ func main() {
 		c.JSON(http.StatusOK, response)
 	})
 
-	r.Run(":8081")
+	ServeHttp(":8081", "client", r)
+}
+
+func ServeHttp(addr, serviceName string, router http.Handler) {
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: router,
+	}
+
+	go func() {
+		logrus.Infof("[%s] http listen: %v", serviceName, srv.Addr)
+
+		if err := srv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+			logrus.Error("server listen err: ", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	logrus.Warn("shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		logrus.Fatal("server forced to shutdown: ", err)
+	}
+
+	logrus.Warn("server exited")
 }
 
 func makeApiCall(url string, responseCh chan Data) {
