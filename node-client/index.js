@@ -3,6 +3,7 @@ import Express from 'express'
 
 const app = Express()
 const maxRetries = 3
+const axiosTimeout = 10000
 
 app.get('/ping', async (req, res) => {
   const { limit } = req.query
@@ -18,15 +19,17 @@ app.get('/ping', async (req, res) => {
 app.get('/pong', async (req, res) => {
   const { limit } = req.query
   console.log(limit)
-  //   let promises = []
-  //   for (let i = 0; i < limit; i++) {
-  //     promises.push(getSomethingWithRetry(i, maxRetries))
-  //   }
-  const axiosTimeout = 90000
-  const promises = Array.from({ length: limit }, (_, i) => getSomething(i, axiosTimeout))
+
+  let promises = []
+  for (let i = 0; i < limit; i++) {
+    promises.push(getSomething(i, axiosTimeout))
+    // promises.push(getSomethingWithRetry(i, maxRetries))
+  }
+  // const promises = Array.from({ length: limit }, (_, i) => getSomething(i, axiosTimeout))
 
   try {
     const response = await Promise.all(promises)
+    console.log(response.length)
     res.json(response)
   } catch (error) {
     console.error(error.message)
@@ -46,7 +49,6 @@ async function getSomething(id, timeout) {
         return data
       } catch (error) {
         if (error.code === 'ECONNRESET') {
-          // Handle the ECONNRESET error, possibly by retrying the request
           console.error(`ECONNRESET error for request id ${id}. Retrying...`)
         } else {
           console.error(`Request for id ${id} failed: ${error.message}`)
@@ -55,7 +57,6 @@ async function getSomething(id, timeout) {
       }
     }
   } catch (error) {
-    // Handle request timeout or other errors
     console.error(`Request for id ${id} failed: ${error.message}`)
     return { id, error: 'Request failed' }
   }
@@ -68,11 +69,10 @@ async function getSomethingWithRetry(id, maxRetries) {
         return data
       } catch (error) {
         if (error.code === 'ECONNRESET') {
-          // Handle the ECONNRESET error, possibly by retrying the request
           console.error(`ECONNRESET error for request id ${id}. Retrying...`)
         } else {
           console.error(`Request for id ${id} failed: ${error.message}`)
-          break // Break out of the retry loop for other error types
+          break
         }
       }
     }
