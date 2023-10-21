@@ -1,0 +1,7 @@
+GET http://kp.sing3demons:8081?limit=1000000 HTTP/1.1
+
+###
+GET http://kp.sing3demons:8081/ping?limit=1000 HTTP/1.1
+
+###
+GET http://kp.sing3demons/health HTTP/1.1

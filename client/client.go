@@ -35,6 +35,11 @@ func main() {
 	totalRequests := 30
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+		})
+	})
 	r.GET("/", func(c *gin.Context) {
 		s := c.DefaultQuery("limit", "30")
 		if s == "" {

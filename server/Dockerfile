@@ -14,3 +14,5 @@ WORKDIR /app
 COPY --from=builder /home/src/server /app/
 
 CMD [ "/app/server" ]
+
+# docker run -d -p 8080:8080 sing3demons/go-server:1.2

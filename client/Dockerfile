@@ -16,3 +16,5 @@ COPY --from=builder /home/src/client /app/
 EXPOSE 8081
 
 CMD [ "/app/client" ]
+
+# docker run -d -p 8081:8081 -e SERVER_URL=http://host.docker.internal:8080/api/v1/get_something sing3demons/go-client:1.2

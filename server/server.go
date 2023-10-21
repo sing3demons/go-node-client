@@ -36,6 +36,10 @@ func main() {
 			TimeZone:   "Asia/Bangkok"},
 	))
 	app.Use(recover.New())
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.Status(200).JSON(fiber.Map{"status": "ok"})
+	})
+
 	app.Get("/api/v1/get_something", func(c *fiber.Ctx) error {
 		id := c.Query("id")
 		dataId, err := strconv.Atoi(id)
