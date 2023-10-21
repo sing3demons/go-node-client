@@ -27,7 +27,11 @@ type Data struct {
 var mu sync.Mutex
 
 func main() {
-	endpoint := "http://localhost:8080/api/v1/get_something?id="
+	url := os.Getenv("SERVER_URL")
+	if url == "" {
+		url = "http://localhost:8080/api/v1/get_something"
+	}
+	endpoint := url + "?id="
 	totalRequests := 30
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
@@ -47,7 +51,7 @@ func main() {
 		var response []Data
 		var wg sync.WaitGroup
 		responseCh := make(chan Data, limit)
-		poolSize := 5
+		poolSize := 10
 		semaphore := make(chan struct{}, poolSize)
 		for i := 0; i < limit; i++ {
 			wg.Add(1)

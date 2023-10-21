@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os/signal"
 	"strconv"
@@ -28,20 +27,7 @@ func init() {
 }
 
 func main() {
-	app := fiber.New(fiber.Config{
-		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
-			code := fiber.StatusInternalServerError
-			var e *fiber.Error
-			if errors.As(err, &e) {
-				code = e.Code
-			}
-			err = ctx.Status(code).SendFile(fmt.Sprintf("./%d.html", code))
-			if err != nil {
-				return ctx.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
-			}
-			return nil
-		},
-	})
+	app := fiber.New()
 	app.Use(cors.New())
 	app.Use(logger.New(
 		logger.Config{
@@ -80,6 +66,6 @@ func main() {
 	fmt.Println("shutting down gracefully, press Ctrl+C again to force")
 
 	if err := app.Shutdown(); err != nil {
-		fmt.Println(err)
+		log.Error(err)
 	}
 }
