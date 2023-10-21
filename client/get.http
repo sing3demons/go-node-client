@@ -1,7 +1,7 @@
-GET http://localhost?limit=1000 HTTP/1.1
+GET http://localhost?limit=10000 HTTP/1.1
 
 ###
-GET http://localhost/ping?limit=1000 HTTP/1.1
+GET http://localhost/ping?limit=10000 HTTP/1.1
 
 ###
 GET http://kp.sing3demons/health HTTP/1.1
