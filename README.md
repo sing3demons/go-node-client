@@ -15,4 +15,11 @@ kubectl delete -f k8s-ingress.yml
 kubectl delete -f client/kubernetes.yml
 kubectl delete -f server/kubernetes.yml
 kubectl delete -f k8s-ns.yml
+kubectl delete ns go-kubernetes
+kubectl delete ns ingress-nginx
+```
+
+```delete all
+kubectl delete ns go-kubernetes
+kubectl delete ns ingress-nginx
 ```
